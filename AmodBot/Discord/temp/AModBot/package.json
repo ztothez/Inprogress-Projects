@@ -6,6 +6,6 @@
 	"dependencies": {
 		"discord.js": "^11.2.0",
 		"fstorm": "^0.1.3",
-		"jimp": "^0.3.7"
+		"jimp": "^0.12.0"
 	}
 }
