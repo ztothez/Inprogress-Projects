@@ -1,0 +1,15 @@
+name: Auto Approve Snyk-bot PRs
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    if: github.actor == 'snyk-bot'
+    steps:
+      - name: Approve Snyk PR
+        uses: hmarr/auto-approve-action@v2.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
