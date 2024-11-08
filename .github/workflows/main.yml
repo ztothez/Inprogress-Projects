@@ -5,17 +5,20 @@ on:
     types: [opened, synchronize]
   workflow_dispatch:  # Allows manual triggering
 
+permissions:
+  pull-requests: write
+  contents: write
+
 jobs:
   auto-approve-and-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'snyk'
     steps:
-      - name: Approve Snyk PR
+      - name: Approve PR
         uses: hmarr/auto-approve-action@v2.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge Snyk PR
+      - name: Merge PR
         run: |
           gh pr merge ${{ github.event.pull_request.number }} --merge --admin
         env:
