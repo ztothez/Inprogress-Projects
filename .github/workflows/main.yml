@@ -1,0 +1,48 @@
+name: Auto Update and Merge Snyk-bot PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  auto-update-and-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if PR is from Snyk-bot
+        id: check_snyk_bot
+        run: |
+          PR_AUTHOR=$(jq -r .pull_request.user.login "$GITHUB_EVENT_PATH")
+          if [[ "$PR_AUTHOR" != "snyk-bot" ]]; then
+            echo "This PR is not from Snyk-bot. Exiting."
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve Snyk PR
+        if: steps.check_snyk_bot.outcome == 'success'
+        uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Branch
+        if: steps.check_snyk_bot.outcome == 'success'
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git checkout ${{ github.event.pull_request.head.ref }}
+          git merge origin/${{ github.event.pull_request.base.ref }}
+          git push origin ${{ github.event.pull_request.head.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge Snyk PR
+        if: steps.check_snyk_bot.outcome == 'success'
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --merge --admin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
