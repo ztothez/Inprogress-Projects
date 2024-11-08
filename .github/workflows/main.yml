@@ -1,4 +1,4 @@
-name: Auto Approve and Merge Snyk-bot PRs
+name: Auto Approve, Update, and Merge Snyk-bot PRs
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  auto-approve-and-merge:
+  auto-approve-update-and-merge:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,6 +18,16 @@ jobs:
         uses: hmarr/auto-approve-action@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Branch
+        if: github.event_name == 'pull_request' && github.actor == 'snyk-bot'
+        run: |
+          gh pr checkout ${{ github.event.pull_request.number }}
+          git fetch origin master
+          git merge origin/master
+          git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge Snyk PR
         if: github.event_name == 'pull_request' && github.actor == 'snyk-bot'
